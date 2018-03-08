@@ -1,0 +1,160 @@
+<html>
+<head>
+<style>
+.block{
+  display: inline-block;
+  position:float;
+  margin: 5px;
+  padding: 5px;
+  border-radius:5px;
+}
+.tags{
+  width : 40px;
+  background-color : lightblue;
+  display: inline-block;
+  position:float;
+  margin: 5px;
+  padding: 5px;
+  border-radius:5px;
+  cursor:pointer;
+}
+.tags-active {
+  width : 40px;
+  background-color : lightgreen;
+  display: inline-block;
+  position:float;
+  margin: 5px;
+  padding: 5px;
+  border-radius:5px;
+  cursor:pointer;
+}
+.tags-active2 {
+  width : 40px;
+  background-color : red;
+  display: inline-block;
+  position:float;
+  margin: 5px;
+  padding: 5px;
+  border-radius:5px;
+  cursor:pointer;
+}
+.imageHide {
+  width : 25%;
+  display: none;
+  position:float;
+}
+.imageShow {
+  width : 30%;
+  display: inline-block;
+  position:float;
+  border-style: solid;
+  border-color: lightgray;
+}
+</style>
+<script>
+{{fid2tag}}
+function tagClick(name) { 
+  var el = document.getElementById(name);
+  var state = parseInt(el.getAttribute("state"));
+  switch(state) {
+    case 0: 
+      el.setAttribute("state",1);
+      el.setAttribute("class","tags-active");
+      break;
+    case 1:
+      el.setAttribute("state",2);
+      el.setAttribute("class","tags-active2");
+      break;
+    case 2:
+      el.setAttribute("state",0);
+      el.setAttribute("class","tags");
+      break;
+  }
+  if( document.getElementById("autoupdate").checked ) update();
+}
+
+function update() {
+  var tagState = [];
+  var checkel = document.getElementById("andcheck");
+  
+  var ntag = 0;
+  var nMustHaveTag = 0;
+  
+  for(var tag in tagId) {
+    tagState[tagId[tag]] = 0;
+    
+    var el = document.getElementById(tag);
+    if(el==null)  continue;
+    var st = parseInt(el.getAttribute("state"));
+    if(st==2) {
+      nMustHaveTag = nMustHaveTag + 1;
+    } else {
+      ntag = ntag + st;
+    }
+    tagState[tagId[tag]] = st;
+  }
+  
+  var nshow = 0;
+  for(var m=0; m<fid2tag.length; m++) {
+    var showimg = 0;
+    document.getElementById("fid"+m).setAttribute('class','imageHide');
+    var cTag = 0;
+    var mTag = 0;
+    for(var n=0; n<fid2tag[m].length; n++) {
+      if(tagState[fid2tag[m][n]]==2) {
+        mTag = mTag + 1;
+        cTag = cTag + 1;
+      }
+      if(tagState[fid2tag[m][n]]==1) {
+        cTag = cTag + 1;
+      }
+    }
+    if(mTag!=nMustHaveTag) continue;
+    
+    if(cTag>0) {
+      document.getElementById("fid"+m).setAttribute('class','imageShow');
+      nshow = nshow + 1;
+    }
+  }
+  document.getElementById("nimages").innerHTML = nshow + "/" + fid2tag.length;
+}
+
+function update_old() {
+  var els = document.getElementsByTagName('img');
+  for(var n=0;n<els.length;n++) {
+    els[n].setAttribute("class","imageHide");
+  }
+  for(var tag in tag2fid) {
+    var el = document.getElementById(tag);
+    if(el==null)  continue;
+    var st = parseInt(el.getAttribute("state"));
+    if(st) {
+      for(var id in tag2fid[tag]) {
+        document.getElementById("fid"+id).setAttribute("class","imageShow");
+      }
+    }
+  }
+}
+function size() {
+  var nam = prompt("Size as W,H (in %):");
+  nam = nam.split(',');
+  var els = document.getElementsByClassName("imageHide");
+  for(var m=0; m<els.length; m++) { els[m].style.width = nam[0]+'%'; els[m].style.height = nam[1]+'%'; }
+  var els = document.getElementsByClassName("imageShow");
+  for(var m=0; m<els.length; m++) { els[m].style.width = nam[0]+'%'; els[m].style.height = nam[1]+'%'; }
+}
+</script>
+</head>
+<body>
+<div>
+<div class=block style="width:73%;background-color:#EEEEEEEE;display:inline-block;">
+{{tagTxt}}
+</div><div style="width:24%;display:inline-block;"> 
+<button onclick="size()">Size</button><br>
+<input id="autoupdate" type="checkbox">Auto update</input><br>
+<div id="nimages" style="color:gray;font-size:32;display:inline-block">count</div><br>
+<div class=tags id="update" style="width:60px;" onclick="update()">Update</div>
+</div>
+{{filTxt}}
+</body>
+</html>
