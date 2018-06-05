@@ -91,7 +91,7 @@ for fil in flist:
   filTxt2+= '<div class="imagehide" id="fid%d" onclick="onSelect(\'fid%d\')" sel="0"><div style="position:absolute;margin:0px;z-index:5;font-size:12;">%s</div><img style="width:100%%;" src="%s"></img></div>\n'%(nfil, nfil, os.path.basename(fil), os.path.basename(fil))
   
 def writeOutput(fname, opts):
-  tfd = open('htmlTemp.html','r')
+  tfd = open('imageListTemplate.html','r')
   print('creating output %s'%fname)
   fd = open(fname,'w')
   for tt in tfd.readlines():
