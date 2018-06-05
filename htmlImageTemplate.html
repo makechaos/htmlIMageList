@@ -50,9 +50,89 @@
   border-style: solid;
   border-color: lightgray;
 }
+.imageSel {
+  border-style: solid 5px;
+  border-color: green;
+}
 </style>
 <script>
 {{fid2tag}}
+{{tagId}}
+var selections = [];
+var curSel = {};
+function onSelect(id){
+  var el = document.getElementById(id);
+  var st = el.getAttribute("sel");
+  if(st=="1"){
+    el.setAttribute("class","imageShow");
+    el.setAttribute("sel","0");
+    curSel[id] = 0;
+  } else {
+    curSel[id] = 1;
+    el.setAttribute("sel","1");
+    el.setAttribute("class","imageShow imageSel")
+  }
+}
+
+function addOption(el,val,name) {
+  var opt = document.createElement('option');
+  opt.setAttribute("value",val);
+  opt.innerHTML = name;
+  el.appendChild(opt);
+}
+
+function saveSelect() {
+  if(curSel.length<1) {
+    alert("no selection to save");
+    return;
+  }
+  var vals = [];
+  var txt = '';
+  for(id in curSel) {
+    if(curSel[id]>0) {
+      vals.push(id);
+      txt = txt + ' ,'+id;
+      document.getElementById(id).setAttribute("class", "imageShow");
+    }
+  }
+  
+  var selName = prompt("Enter selection name :");
+  selName += " (" + vals.length + ")"
+  selections[selName] = vals;
+  addOption(document.getElementById("selections"), selName, selName);
+  
+  var txt = '{';
+  for(var sel in selections) {
+    txt += '"'+sel+'":[';
+    for(var m=0; m<selections[sel].length; m++) {
+      txt += '"'+selections[sel][m] + '",';
+    }
+    txt = txt.slice(0,txt.length-1);
+    txt += "],";
+  }
+  txt = txt.slice(0,txt.length-1);
+  txt += "}";
+  document.getElementById("seltext").value = txt;
+    
+  curSel = {};
+}
+
+function loadSelect() {
+  // hide all shown images
+  for(var m=0; m<fid2tag.length; m++) {
+    document.getElementById("fid"+m).setAttribute('class','imageHide');
+  }
+   
+  // show only the images in selection list
+  var selName = document.getElementById("selections").value;
+  var txt = '';
+  for(var m=0; m<selections[selName].length; m++) {
+    var fid = selections[selName][m];
+    txt = txt + ','+fid;
+    document.getElementById(fid).setAttribute("class","imageShow");
+  }
+}
+
 function tagClick(name) { 
   var el = document.getElementById(name);
   var state = parseInt(el.getAttribute("state"));
@@ -103,18 +183,17 @@ function update() {
     for(var n=0; n<fid2tag[m].length; n++) {
       if(tagState[fid2tag[m][n]]==2) {
         mTag = mTag + 1;
-        cTag = cTag + 1;
       }
       if(tagState[fid2tag[m][n]]==1) {
         cTag = cTag + 1;
       }
     }
     if(mTag!=nMustHaveTag) continue;
+    if((ntag>0)&&(cTag==0)) continue;
     
-    if(cTag>0) {
-      document.getElementById("fid"+m).setAttribute('class','imageShow');
-      nshow = nshow + 1;
-    }
+    document.getElementById("fid"+m).setAttribute('class','imageShow');
+    nshow = nshow + 1;
+    
   }
   document.getElementById("nimages").innerHTML = nshow + "/" + fid2tag.length;
 }
@@ -135,6 +214,7 @@ function update_old() {
     }
   }
 }
+
 function size() {
   var nam = prompt("Size as W,H (in %):");
   nam = nam.split(',');
@@ -150,8 +230,11 @@ function size() {
 <div class=block style="width:73%;background-color:#EEEEEEEE;display:inline-block;">
 {{tagTxt}}
 </div><div style="width:24%;display:inline-block;"> 
-<button onclick="size()">Size</button><br>
-<input id="autoupdate" type="checkbox">Auto update</input><br>
+<button onclick="saveSelect()" style="margin-bottom:10px;">Save Selection</button>
+<select id="selections" onchange="loadSelect()" style="width:60px;">
+<option value="None">None</option></select><br>
+<input type="text" id="seltext" disabled style="width:160px;margin-bottom:10px;"></input><br>
+<input id="autoupdate" type="checkbox" checked="True">Auto update</input>  <button onclick="size()">Size</button> <br>
 <div id="nimages" style="color:gray;font-size:32;display:inline-block">count</div><br>
 <div class=tags id="update" style="width:60px;" onclick="update()">Update</div>
 </div>
